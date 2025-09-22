@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Messenger Chat Simulation</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0084ff">
+    <link rel="stylesheet" href="style.css?v=1.4">
+</head>
+<body>
+    <!-- How to run: Serve via HTTP server (e.g. python -m http.server 5000) due to Fetch API requirements -->
+    
+    <div id="app">
+        <!-- Mobile Navigation Views -->
+        
+        <!-- Main Contacts View -->
+        <div id="contactsView" class="view active-view">
+            <div class="mobile-header">
+                <h1>Chats</h1>
+                <div class="header-actions">
+                    <button id="rulesBtn" class="header-action-btn" title="নিয়মাবলী">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                    </button>
+                    <button id="darkModeToggle" class="header-action-btn" title="Toggle Dark Mode">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="light-icon">
+                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
+                        </svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="dark-icon" style="display: none;">
+                            <path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/>
+                        </svg>
+                    </button>
+                    <button id="addUserBtnMobile" class="header-action-btn" title="Add User">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </button>
+                    <button id="addGroupBtnMobile" class="header-action-btn" title="Add Group">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 12.75c1.63 0 3.07.39 4.24.9c1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73c1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2zm1.13 1.1c-.37-.06-.74-.1-1.13-.1c-.99 0-1.93.21-2.78.58A2.01 2.01 0 0 0 0 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29zM20 13c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2zm4 3.43c0-.81-.48-1.53-1.22-1.85A6.95 6.95 0 0 0 20 14c-.39 0-.76.04-1.13.1c.4.68.63 1.46.63 2.29V18H24v-1.57zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3s-3-1.34-3-3s1.34-3 3-3z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Yellow Banner Notification -->
+            <div id="yellowBanner" class="yellow-banner">
+                <div class="banner-content">
+                    <svg class="banner-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span class="banner-text">প্রথম প্রোফাইলে একবার হলেও চেক করে নাও</span>
+                </div>
+            </div>
+            
+            <!-- Contacts List -->
+            <div class="contacts-container">
+                <div id="usersList" class="contacts-list"></div>
+                <div id="groupsList" class="contacts-list"></div>
+            </div>
+        </div>
+        
+        <!-- Chat View -->
+        <div id="chatView" class="view">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <button id="backBtn" class="back-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                </button>
+                <div class="chat-info">
+                    <img id="chatAvatar" class="chat-avatar" src="" alt="">
+                    <div class="chat-details">
+                        <h3 id="chatName"></h3>
+                        <span id="chatStatus" class="status"></span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="chat-action-btn" title="Voice Call">
+                        <svg height="20px" width="20px" viewBox="-5 -5 30 30">
+                            <path d="M10.952 14.044c.074.044.147.086.22.125a.842.842 0 001.161-.367c.096-.195.167-.185.337-.42.204-.283.552-.689.91-.772.341-.078.686-.105.92-.11.435-.01 1.118.174 1.926.648a15.9 15.9 0 011.713 1.147c.224.175.37.43.393.711.042.494-.034 1.318-.754 2.137-1.135 1.291-2.859 1.772-4.942 1.088a17.47 17.47 0 01-6.855-4.212 17.485 17.485 0 01-4.213-6.855c-.683-2.083-.202-3.808 1.09-4.942.818-.72 1.642-.796 2.136-.754.282.023.536.17.711.392.25.32.663.89 1.146 1.714.475.808.681 1.491.65 1.926-.024.31-.026.647-.112.921-.11.35-.488.705-.77.91-.236.17-.226.24-.42.336a.841.841 0 00-.368 1.161c.04.072.081.146.125.22a14.012 14.012 0 004.996 4.996z" fill="currentColor"></path>
+                        </svg>
+                    </button>
+                    <button class="chat-action-btn" title="Video Call">
+                        <svg height="20px" width="20px" viewBox="-5 -5 30 30">
+                            <path d="M19.492 4.112a.972.972 0 00-1.01.063l-3.052 2.12a.998.998 0 00-.43.822v5.766a1 1 0 00.43.823l3.051 2.12a.978.978 0 001.011.063.936.936 0 00.508-.829V4.94a.936.936 0 00-.508-.828zM10.996 18A3.008 3.008 0 0014 14.996V5.004A3.008 3.008 0 0010.996 2H3.004A3.008 3.008 0 000 5.004v9.992A3.008 3.008 0 003.004 18h7.992z" fill="currentColor"></path>
+                        </svg>
+                    </button>
+                    <button class="chat-action-btn" title="Info">
+                        <svg height="20px" width="20px" viewBox="0 0 36 36">
+                            <g transform="translate(18,18)scale(1.2)translate(-18,-18)">
+                                <path d="M18,10 C16.6195,10 15.5,11.119 15.5,12.5 C15.5,13.881 16.6195,15 18,15 C19.381,15 20.5,13.881 20.5,12.5 C20.5,11.119 19.381,10 18,10 Z M16,25 C16,25.552 16.448,26 17,26 L19,26 C19.552,26 20,25.552 20,25 L20,18 C20,17.448 19.552,17 19,17 L17,17 C16.448,17 16,17.448 16,18 L16,25 Z M18,30 C11.3725,30 6,24.6275 6,18 C6,11.3725 11.3725,6 18,6 C24.6275,6 30,11.3725 30,18 C30,24.6275 24.6275,30 18,30 Z" fill="currentColor" stroke="currentColor"></path>
+                            </g>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Messages Container -->
+            <div id="messagesContainer" class="messages-container">
+                <div id="messagesList" class="messages-list"></div>
+            </div>
+            
+            <!-- Reply Preview -->
+            <div id="replyPreview" class="reply-preview" style="display: none;">
+                <div class="reply-preview-content">
+                    <div class="reply-preview-header">
+                        <span class="reply-preview-label">Replying to <span id="replyPreviewName"></span></span>
+                        <button id="cancelReply" class="cancel-reply-btn">×</button>
+                    </div>
+                    <div id="replyPreviewText" class="reply-preview-text"></div>
+                </div>
+            </div>
+            
+            <!-- Message Input (Messenger Style) -->
+            <div class="message-input-container">
+                <!-- Action buttons outside input wrapper -->
+                <div class="input-actions-left">
+                    <button class="action-btn" id="addBtn" title="Add">
+                        <svg height="20px" width="20px" viewBox="6 6 12 12">
+                            <path d="m18,11l-5,0l0,-5c0,-0.552 -0.448,-1 -1,-1c-0.5525,0 -1,0.448 -1,1l0,5l-5,0c-0.5525,0 -1,0.448 -1,1c0,0.552 0.4475,1 1,1l5,0l0,5c0,0.552 0.4475,1 1,1c0.552,0 1,-0.448 1,-1l0,-5l5,0c0.552,0 1,-0.448 1,-1c0,-0.552 -0.448,-1 -1,-1m-6,13c-6.6275,0 -12,-5.3725 -12,-12c0,-6.6275 5.3725,-12 12,-12c6.627,0 12,5.3725 12,12c0,6.6275 -5.373,12 -12,12" fill="currentColor"></path>
+                        </svg>
+                    </button>
+                    <button class="action-btn" id="voiceBtn" title="Voice Message">
+                        <svg height="20px" width="20px" viewBox="0 0 24 24">
+                            <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2zM11 19h2v3h-2z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                    
+                    <button class="action-btn" id="gifBtn" title="GIF">
+                        <svg height="20px" width="20px" viewBox="1 3 14 10">
+                            <path d="M.783 12.705c.4.8 1.017 1.206 1.817 1.606 0 0 1.3.594 2.5.694 1 .1 1.9.1 2.9.1s1.9 0 2.9-.1 1.679-.294 2.479-.694c.8-.4 1.157-.906 1.557-1.706.018 0 .4-1.405.5-2.505.1-1.2.1-3 0-4.3-.1-1.1-.073-1.976-.473-2.676-.4-.8-.863-1.408-1.763-1.808-.6-.3-1.2-.3-2.4-.4-1.8-.1-3.8-.1-5.7 0-1 .1-1.7.1-2.5.5s-1.417 1.1-1.817 1.9c0 0-.4 1.484-.5 2.584-.1 1.2-.1 3 0 4.3.1 1 .2 1.705.5 2.505zm10.498-8.274h2.3c.4 0 .769.196.769.696 0 .5-.247.68-.747.68l-1.793.02.022 1.412 1.252-.02c.4 0 .835.204.835.704s-.442.696-.842.696H11.82l-.045 2.139c0 .4-.194.8-.694.8-.5 0-.7-.3-.7-.8l-.031-5.631c0-.4.43-.696.93-.696zm-3.285.771c0-.5.3-.8.8-.8s.8.3.8.8l-.037 5.579c0 .4-.3.8-.8.8s-.8-.4-.8-.8l.037-5.579zm-3.192-.825c.7 0 1.307.183 1.807.683.3.3.4.7.1 1-.2.4-.7.4-1 .1-.2-.1-.5-.3-.9-.3-1 0-2.011.84-2.011 2.14 0 1.3.795 2.227 1.695 2.227.4 0 .805.073 1.105-.127V8.6c0-.4.3-.8.8-.8s.8.3.8.8v1.8c0 .2.037.071-.063.271-.7.7-1.57.991-2.47.991C2.868 11.662 1.3 10.2 1.3 8s1.704-3.623 3.504-3.623z" fill-rule="nonzero" fill="currentColor"></path>
+                        </svg>
+                    </button>
+                    
+                </div>
+                
+                <!-- Toggle Arrow Button (hidden by default) -->
+                <button class="toggle-actions-btn" id="toggleActionsBtn" style="display: none;" title="Show actions">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                    </svg>
+                </button>
+                
+                <div class="message-input-wrapper">
+                    <textarea id="messageInput" placeholder="Aa" autocomplete="off" rows="1"></textarea>
+                    <button class="input-emoji-btn" id="emojiBtn" title="Emoji">
+                        <svg height="20px" width="20px" viewBox="0 0 38 38">
+                            <g fill="none" fill-rule="evenodd">
+                                <g transform="translate(-893.000000, -701.000000)">
+                                    <g transform="translate(709.000000, 314.000000)">
+                                        <g>
+                                            <path d="M210.5,405 C209.121,405 208,403.879 208,402.5 C208,401.121 209.121,400 210.5,400 C211.879,400 213,401.121 213,402.5 C213,403.879 211.879,405 210.5,405 M212.572,411.549 C210.428,413.742 206.938,415 203,415 C199.062,415 195.572,413.742 193.428,411.549 C192.849,410.956 192.859,410.007 193.451,409.428 C194.045,408.85 194.993,408.859 195.572,409.451 C197.133,411.047 199.909,412 203,412 C206.091,412 208.867,411.047 210.428,409.451 C211.007,408.859 211.956,408.85 212.549,409.428 C213.141,410.007 213.151,410.956 212.572,411.549 M195.5,400 C196.879,400 198,401.121 198,402.5 C198,403.879 196.879,405 195.5,405 C194.121,405 193,403.879 193,402.5 C193,401.121 194.121,400 195.5,400 M203,387 C192.523,387 184,395.523 184,406 C184,416.477 192.523,425 203,425 C213.477,425 222,416.477 222,406 C222,395.523 213.477,387 203,387" fill="currentColor"></path>
+                                        </g>
+                                    </g>
+                                </g>
+                            </g>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Like/Send button that changes based on input -->
+                <button id="likeBtn" class="like-btn-mobile" style="display: flex;">
+                    👍
+                </button>
+                
+                <button id="sendBtn" class="send-btn-mobile" style="display: none;">
+                    <svg height="20px" width="20px" viewBox="0 0 24 24">
+                        <path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.41,22.99 3.50612381,23.1 4.13399899,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.9702544,11.6889879 C22.8132856,11.0605983 22.3423792,10.4322088 21.714504,10.118014 L4.13399899,1.16346272 C3.34915502,0.9 2.40734225,1.00636533 1.77946707,1.4776575 C0.994623095,2.10604706 0.8376543,3.0486314 1.15159189,3.99121575 L3.03521743,10.4322088 C3.03521743,10.5893061 3.34915502,10.7464035 3.50612381,10.7464035 L16.6915026,11.5318905 C16.6915026,11.5318905 17.1624089,11.5318905 17.1624089,12.0031827 C17.1624089,12.4744748 16.6915026,12.4744748 16.6915026,12.4744748 Z" fill-rule="evenodd" stroke="none" fill="currentColor"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Add User View -->
+        <div id="addUserView" class="view">
+            <div class="mobile-header">
+                <button class="back-btn" onclick="showView('contactsView')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                </button>
+                <h1>Add User</h1>
+            </div>
+            
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="userNameMobile">Name:</label>
+                    <input type="text" id="userNameMobile" placeholder="Enter user name" required>
+                </div>
+                <div class="form-group">
+                    <label for="userAvatarMobile">Profile Picture:</label>
+                    <input type="file" id="userAvatarMobile" accept="image/*">
+                    <div class="avatar-preview">
+                        <img id="userAvatarPreviewMobile" style="display: none;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="userStatusMobile">Status Text:</label>
+                    <input type="text" id="userStatusMobile" placeholder="Available, Busy, etc.">
+                </div>
+                <button onclick="addUserMobile()" class="btn-primary full-width">Add User</button>
+            </div>
+        </div>
+        
+        <!-- Add Group View -->
+        <div id="addGroupView" class="view">
+            <div class="mobile-header">
+                <button class="back-btn" onclick="showView('contactsView')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                </button>
+                <h1>Create Group</h1>
+            </div>
+            
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="groupNameMobile">Group Name:</label>
+                    <input type="text" id="groupNameMobile" placeholder="Enter group name" required>
+                </div>
+                <div class="form-group">
+                    <label for="groupAvatarMobile">Group Picture:</label>
+                    <input type="file" id="groupAvatarMobile" accept="image/*">
+                    <div class="avatar-preview">
+                        <img id="groupAvatarPreviewMobile" style="display: none;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Members:</label>
+                    <div id="membersListMobile" class="members-checkboxes">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                </div>
+                <button onclick="addGroupMobile()" class="btn-primary full-width">Create Group</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for Adding User -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New User</h3>
+                <button class="close-btn" onclick="closeModal('addUserModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="userName">Name:</label>
+                    <input type="text" id="userName" placeholder="Enter user name" required>
+                </div>
+                <div class="form-group">
+                    <label for="userAvatar">Profile Picture:</label>
+                    <input type="file" id="userAvatar" accept="image/*">
+                    <div class="avatar-preview">
+                        <img id="userAvatarPreview" style="display: none;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="userStatus">Status Text:</label>
+                    <input type="text" id="userStatus" placeholder="Available, Busy, etc.">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal('addUserModal')" class="btn-secondary">Cancel</button>
+                <button onclick="addUser()" class="btn-primary">Add User</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for Adding Group -->
+    <div id="addGroupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Group</h3>
+                <button class="close-btn" onclick="closeModal('addGroupModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="groupName">Group Name:</label>
+                    <input type="text" id="groupName" placeholder="Enter group name" required>
+                </div>
+                <div class="form-group">
+                    <label for="groupAvatar">Group Picture:</label>
+                    <input type="file" id="groupAvatar" accept="image/*">
+                    <div class="avatar-preview">
+                        <img id="groupAvatarPreview" style="display: none;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Members:</label>
+                    <div id="membersList" class="members-checkboxes">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal('addGroupModal')" class="btn-secondary">Cancel</button>
+                <button onclick="addGroup()" class="btn-primary">Create Group</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Context Menu for Messages -->
+    <div id="messageContextMenu" class="context-menu">
+        <div class="context-menu-item" onclick="editMessage()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+            </svg>
+            Edit
+        </div>
+        <div class="context-menu-item" onclick="deleteMessage()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </svg>
+            Delete
+        </div>
+        <div class="context-menu-item" onclick="reactToMessage()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            React
+        </div>
+        <div class="context-menu-item" onclick="replyToMessage()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/>
+            </svg>
+            Reply
+        </div>
+    </div>
+    
+    <!-- Emoji Picker -->
+    <div id="emojiPicker" class="emoji-picker">
+        <div class="emoji-grid">
+            <span class="emoji" onclick="selectEmoji('👍')">👍</span>
+            <span class="emoji" onclick="selectEmoji('❤️')">❤️</span>
+            <span class="emoji" onclick="selectEmoji('😂')">😂</span>
+            <span class="emoji" onclick="selectEmoji('😮')">😮</span>
+            <span class="emoji" onclick="selectEmoji('😢')">😢</span>
+            <span class="emoji" onclick="selectEmoji('😡')">😡</span>
+            <span class="emoji" onclick="selectEmoji('🔥')">🔥</span>
+            <span class="emoji" onclick="selectEmoji('👎')">👎</span>
+        </div>
+    </div>
+    
+    <!-- Action Options Modal -->
+    <div id="actionOptionsModal" class="action-options-modal">
+        <div class="action-options-header">
+            <h3>Send message as:</h3>
+        </div>
+        <div class="action-options-list" id="actionOptionsList">
+            <!-- Will be populated dynamically -->
+        </div>
+    </div>
+    
+    <!-- User Picker for Group Messages -->
+    <div id="userPickerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Send message as:</h3>
+                <button class="close-btn" onclick="closeModal('userPickerModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="userPickerList" class="user-picker-list">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Image Preview Modal -->
+    <div id="imagePreviewModal" class="modal image-preview-modal">
+        <div class="image-preview-content">
+            <button class="image-preview-close" onclick="hideImagePreview()">&times;</button>
+            <img id="imagePreviewImg" class="image-preview-img" src="" alt="Image Preview">
+        </div>
+    </div>
+    
+    <!-- Rules Modal -->
+    <div id="rulesModal" class="modal rules-modal">
+        <div class="rules-modal-content">
+            <div class="rules-modal-header">
+                <h2>📱 অ্যাপ ব্যবহারের নিয়মাবলী</h2>
+                <button class="rules-modal-close" onclick="hideRulesModal()">&times;</button>
+            </div>
+            <div class="rules-modal-body">
+                <div class="rules-section">
+                    <h3>🏠 হোম পেজ ব্যবহার</h3>
+                    <ul>
+                        <li><strong>চ্যাট লিস্ট:</strong> প্রথম পেজেই সব প্রোফাইল/চ্যাট দেখতে পাবেন</li>
+                        <li><strong>নতুন ইউজার:</strong> + আইকনে ক্লিক করে নতুন ইউজার যোগ করুন</li>
+                        <li><strong>গ্রুপ তৈরি:</strong> গ্রুপ আইকনে ক্লিক করে নতুন গ্রুপ বানান</li>
+                        <li><strong>ডার্ক মোড:</strong> চাঁদের আইকনে ক্লিক করে রাত/দিনের মোড পরিবর্তন করুন</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section">
+                    <h3>💬 চ্যাট ব্যবহার</h3>
+                    <ul>
+                        <li><strong>মেসেজ পাঠানো:</strong> নিচের বক্সে লিখে Enter চাপুন অথবা পাঠান বাটনে ক্লিক করুন</li>
+                        <li><strong>ছবি পাঠানো:</strong> + বাটনে ক্লিক করে ছবি সিলেক্ট করুন</li>
+                        <li><strong>লাইক দেওয়া (মিমি):</strong> মিমির সাথে চ্যাটে 👍 বাটনে ক্লিক করলে সরাসরি লাইক চলে যাবে</li>
+                        <li><strong>লাইক দেওয়া (অন্যান্য):</strong> অন্য ইউজারের সাথে 👍 বাটনে ক্লিক করলে "Send as You" বা "Receive from User" অপশন আসবে</li>
+                        <li><strong>মেসেজ ইডিট:</strong> নিজের মেসেজে লং প্রেস করে ইডিট করুন</li>
+                        <li><strong>মেসেজ ডিলিট:</strong> নিজের মেসেজে লং প্রেস করে ডিলিট করুন</li>
+                        <li><strong>রিপ্লাই:</strong> কোন মেসেজে লং প্রেস করে রিপ্লাই করুন</li>
+                        <li><strong>মেসেজ অপশন:</strong> প্রতিটি মেসেজে "Send as You" (আপনার পক্ষে পাঠান) বা "Receive from User" (অন্যের পক্ষে পান) অপশন থাকে</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section">
+                    <h3>😂 রিয়েকশন ব্যবহার</h3>
+                    <ul>
+                        <li><strong>দ্রুত রিয়েকশন:</strong> যেকোন মেসেজে লং প্রেস করে ইমোজি রিয়েকশন দিন</li>
+                        <li><strong>রিয়েকশন দেখা:</strong> মেসেজের নিচে ছোট ইমোজি দেখে বুঝুন কে কী রিয়েকশন দিয়েছে</li>
+                        <li><strong>একাধিক রিয়েকশন:</strong> একই মেসেজে একাধিক ইমোজি দিতে পারবেন</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section">
+                    <h3>👥 গ্রুপ চ্যাট</h3>
+                    <ul>
+                        <li><strong>গ্রুপ তৈরি:</strong> হোম পেজে গ্রুপ আইকনে ক্লিক করে নাম, গ্রুপ ছবি ও মেম্বার যোগ করুন</li>
+                        <li><strong>মেসেজ পাঠানো:</strong> গ্রুপে মেসেজ/লাইক পাঠানোর সময় কোন ইউজার হিসেবে পাঠাবেন সেটা সিলেক্ট করুন</li>
+                        <li><strong>মেম্বার দেখা:</strong> গ্রুপের উপরে মেম্বার সংখ্যা ও নাম দেখতে পাবেন</li>
+                        <li><strong>গ্রুপে লাইক:</strong> গ্রুপে লাইক বাটন চাপলে "Send as You" বা যেকোনো মেম্বার হিসেবে পাঠানোর অপশন আসবে</li>
+                        <li><strong>গ্রুপে মিমি:</strong> গ্রুপে মিমি থাকলে তার সাথে ইন্টারঅ্যাক্ট করতে পারবেন</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section">
+                    <h3>⚙️ সেটিংস ও অপশন</h3>
+                    <ul>
+                        <li><strong>স্ট্যাটাস পরিবর্তন:</strong> চ্যাটে গিয়ে স্ট্যাটাসে ক্লিক করে অনলাইন/অফলাইন স্ট্যাটাস পরিবর্তন করুন</li>
+                        <li><strong>অ্যাভাটার আপলোড:</strong> নতুন ইউজার/গ্রুপ তৈরির সময় ছবি আপলোড করতে পারবেন</li>
+                        <li><strong>ব্যাক বাটন:</strong> চ্যাট থেকে হোম পেজে ফিরতে ← বাটন ব্যবহার করুন</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section">
+                    <h3>📱 মোবাইল ব্যবহার</h3>
+                    <ul>
+                        <li><strong>লং প্রেস:</strong> মোবাইলে যেকোন মেসেজে আঙ্গুল দিয়ে দীর্ঘক্ষণ চেপে রাখুন মেনু দেখতে</li>
+                        <li><strong>স্ক্রল:</strong> উপর-নিচে স্ক্রল করে পুরানো মেসেজ দেখুন</li>
+                        <li><strong>জুম:</strong> ছবিতে ক্লিক করলে বড় হয়ে দেখাবে</li>
+                        <li><strong>কিবোর্ড:</strong> মেসেজ বক্সে ক্লিক করলে কিবোর্ড চালু হবে</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section special-note">
+                    <h3>⚠️ বিশেষ প্রোফাইল ও নিয়ম</h3>
+                    <ul>
+                        <li><strong>ডেভলপার প্রোফাইল (DK Shuvo):</strong> প্রথম প্রোফাইলে মেসেজ পাঠানো যাবে না, শুধু যোগাযোগের তথ্য দেখতে পাবেন</li>
+                        <li><strong>স্পেশাল প্রোফাইল (দুঁষ্টুঁ রাঁজাঁরঁ মিঁষ্টিঁ রাঁনীঁ):</strong> দ্বিতীয় প্রোফাইলেও মেসেজ পাঠানো যাবে না, এটি তথ্যমূলক</li>
+                        <li><strong>মিমি প্রোফাইল:</strong> মিমি একটি AI চ্যাটবট যা আপনার মেসেজের জবাব দেয় এবং ইমোজি রিয়েকশন দেয়</li>
+                        <li><strong>ডেটা সেভ:</strong> আপনার সব ডেটা ব্রাউজারে সেভ হয়, পেজ রিফ্রেশ করলেও থাকবে</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section tips-section">
+                    <h3>💡 দরকারি টিপস</h3>
+                    <ul>
+                        <li>বেশি মজার জন্য প্রথমে নিজের নামে একটা ইউজার তৈরি করুন</li>
+                        <li>বন্ধুদের নামে আরো ইউজার তৈরি করে কথোপকথন শুরু করুন</li>
+                        <li>গ্রুপ চ্যাট তৈরি করে পরিবার/বন্ধুদের গ্রুপ বানান</li>
+                        <li>ছবি শেয়ার করে চ্যাট আরো মজাদার বানান</li>
+                        <li>রিয়েকশন ব্যবহার করে দ্রুত সাড়া দিন</li>
+                        <li>মিমির সাথে চ্যাট করে দেখুন সে কেমন জবাব দেয়</li>
+                        <li>লাইক বাটন ব্যবহার করে দ্রুত পজিটিভ রেসপন্স দিন</li>
+                        <li>অন্য ইউজারদের সাথে চ্যাটে "Send as You" ও "Receive from User" অপশন ব্যবহার করুন</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-footer">
+                    <p>🎉 <strong>এই অ্যাপটি সিমুলেশনের জন্য তৈরি!</strong> আশা করি মজা পাবেন! কোন সমস্যা হলে ডেভলপারের সাথে যোগাযোগ করুন।</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(console.error);
+        });
+      }
+    </script>
+    <script src="script.js?v=1.5"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: public/package.json
+
+      - name: Install dependencies
+        working-directory: public
+        run: npm ci || npm install --no-audit --no-fund
+
+      - name: Add Android platform
+        working-directory: public
+        run: |
+          npx cap add android || echo "Android already added"
+
+      - name: Sync web assets
+        working-directory: public
+        run: npx cap sync android
+
+      - name: Build Debug APK
+        working-directory: public/android
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fakebook-debug-apk
+          path: |
+            public/android/app/build/outputs/apk/debug/app-debug.apk
+
+name: Build Android APK (Capacitor)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: {}
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node deps
+        run: npm ci
+        working-directory: ./public
+
+      - name: Ensure Capacitor config
+        run: |
+          node -e "const fs=require('fs');const p='capacitor.config.json';if(!fs.existsSync(p)){console.error('Missing '+p);process.exit(1)}"
+        working-directory: ./public
+
+      - name: Add Android platform
+        run: npm run android:add --silent
+        working-directory: ./public
+
+      - name: Generate app assets (icon)
+        run: npm run android:assets --silent || true
+        working-directory: ./public
+
+      - name: Sync web to native
+        run: npx cap sync android
+        working-directory: ./public
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+        working-directory: ./public/android
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fakebook-debug-apk
+          path: public/android/app/build/outputs/apk/debug/app-debug.apk
+

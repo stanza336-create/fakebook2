@@ -1,0 +1,23 @@
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Capacitor/Android
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+*.iml
+
+# macOS/Windows
+.DS_Store
+Thumbs.db
+
+# Outputs
+*.apk
+*.aab
+
+

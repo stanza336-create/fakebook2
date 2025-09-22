@@ -1,0 +1,29 @@
+{
+  "name": "fakebook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fakebook - Capacitor Android build for a static HTML site",
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf android",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:copy": "npx cap copy",
+    "android:open": "npx cap open android",
+    "android:build": "cd android && ./gradlew assembleDebug || gradlew.bat assembleDebug",
+    "android:build-release": "cd android && ./gradlew assembleRelease || gradlew.bat assembleRelease"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/cli": "^6.1.0",
+    "cordova-res": "^0.15.4",
+    "rimraf": "^6.0.1"
+  }
+}
+
+
