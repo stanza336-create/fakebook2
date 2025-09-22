@@ -15,7 +15,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2️⃣ Setup Node.js
+    # 2️⃣ Setup Node.js (for Capacitor)
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
@@ -32,7 +32,7 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
 
-    # 5️⃣ Add & Sync Capacitor Android
+    # 5️⃣ Add & Sync Capacitor Android platform
     - name: Add & Sync Capacitor Android
       run: |
         npx cap add android || echo "Android platform already exists"
@@ -43,14 +43,21 @@ jobs:
       run: |
         if [ -f ./gg.png ]; then
           for density in hdpi mdpi xhdpi xxhdpi xxxhdpi; do
-            cp gg.png android/app/src/main/res/mipmap-$density/ic_launcher.png
+            target="android/app/src/main/res/mipmap-$density/ic_launcher.png"
+            if [ -f "$target" ]; then
+              cp gg.png "$target"
+            else
+              echo "⚠️ $target not found, skipping"
+            fi
           done
         else
           echo "⚠️ gg.png not found, skipping icon update"
         fi
+
         # Update app name
-        if [ -f android/app/src/main/res/values/strings.xml ]; then
-          sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fakebook<\/string>/' android/app/src/main/res/values/strings.xml
+        strings_xml="android/app/src/main/res/values/strings.xml"
+        if [ -f "$strings_xml" ]; then
+          sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fakebook<\/string>/' "$strings_xml"
         else
           echo "⚠️ strings.xml not found, skipping app_name update"
         fi
@@ -73,7 +80,11 @@ jobs:
     # 9️⃣ Upload APK as artifact (only if exists)
     - name: Upload APK
       if: ${{ always() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: Fakebook-debug
-        path: android/app/build/outputs/apk/debug/*.apk || echo "⚠️ No APK to upload"
+      run: |
+        APK_PATH="android/app/build/outputs/apk/debug/*.apk"
+        if compgen -G "$APK_PATH" > /dev/null; then
+          echo "Uploading APK..."
+          gh-actions-upload-artifact Fakebook-debug "$APK_PATH"
+        else
+          echo "⚠️ No APK to upload"
+        fi
