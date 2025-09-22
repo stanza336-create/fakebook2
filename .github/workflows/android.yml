@@ -36,28 +36,23 @@ jobs:
     - name: Sync Capacitor Android
       run: npx cap sync android
 
-    # Give gradlew permission
+    # Give gradlew permission (gradlew is in project root)
     - name: Grant execute permission for gradlew
-      run: chmod +x android/gradlew
+      run: chmod +x ./gradlew
 
     # Build APK
     - name: Build Android APK
-      run: |
-        cd android
-        ./gradlew assembleDebug
+      run: ./gradlew assembleDebug
 
-    # (Optional) Change app name and icon
+    # (Optional) Change app name & icon
     - name: Set app name & icon
       run: |
-        cd android/app/src/main/res
-        # Update icon (replace default with gg.png)
-        cp ../../../gg.png mipmap-hdpi/ic_launcher.png
-        cp ../../../gg.png mipmap-mdpi/ic_launcher.png
-        cp ../../../gg.png mipmap-xhdpi/ic_launcher.png
-        cp ../../../gg.png mipmap-xxhdpi/ic_launcher.png
-        cp ../../../gg.png mipmap-xxxhdpi/ic_launcher.png
-        # App name is usually in strings.xml
-        sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fakebook<\/string>/' values/strings.xml
+        cp gg.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+        cp gg.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+        cp gg.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+        cp gg.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+        cp gg.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+        sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fakebook<\/string>/' android/app/src/main/res/values/strings.xml
 
     # Upload APK as artifact
     - name: Upload APK
