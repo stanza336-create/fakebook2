@@ -15,6 +15,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Setup Node.js (for Capacitor)
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    # Install npm dependencies
+    - name: Install dependencies
+      run: npm install
+
     # Setup JDK
     - name: Set up JDK 11
       uses: actions/setup-java@v4
@@ -22,32 +32,36 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
 
-    # Cache Gradle (optional, but faster builds)
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
+    # Sync Capacitor Android
+    - name: Sync Capacitor Android
+      run: npx cap sync android
 
     # Give gradlew permission
     - name: Grant execute permission for gradlew
-      run: chmod +x ./gradlew
+      run: chmod +x android/gradlew
 
-    # Build the project
-    - name: Build with Gradle
-      run: ./gradlew build
+    # Build APK
+    - name: Build Android APK
+      run: |
+        cd android
+        ./gradlew assembleDebug
 
-    # Generate Debug APK
-    - name: Assemble Debug APK
-      run: ./gradlew assembleDebug
+    # (Optional) Change app name and icon
+    - name: Set app name & icon
+      run: |
+        cd android/app/src/main/res
+        # Update icon (replace default with gg.png)
+        cp ../../../gg.png mipmap-hdpi/ic_launcher.png
+        cp ../../../gg.png mipmap-mdpi/ic_launcher.png
+        cp ../../../gg.png mipmap-xhdpi/ic_launcher.png
+        cp ../../../gg.png mipmap-xxhdpi/ic_launcher.png
+        cp ../../../gg.png mipmap-xxxhdpi/ic_launcher.png
+        # App name is usually in strings.xml
+        sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fakebook<\/string>/' values/strings.xml
 
     # Upload APK as artifact
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: Fakebook-debug
+        path: android/app/build/outputs/apk/debug/app-debug.apk
