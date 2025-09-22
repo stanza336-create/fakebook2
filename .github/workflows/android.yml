@@ -41,13 +41,13 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
 
-    # (Optional) Generate APK
+    # Generate Debug APK
     - name: Assemble Debug APK
       run: ./gradlew assembleDebug
 
-    # (Optional) Upload APK as artifact
+    # Upload APK as artifact
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: app-debug
         path: app/build/outputs/apk/debug/app-debug.apk
