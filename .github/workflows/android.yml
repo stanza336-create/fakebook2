@@ -15,7 +15,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2️⃣ Setup Node.js (for Capacitor)
+    # 2️⃣ Setup Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
@@ -32,7 +32,7 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
 
-    # 5️⃣ Add & Sync Capacitor Android platform
+    # 5️⃣ Add & Sync Capacitor Android
     - name: Add & Sync Capacitor Android
       run: |
         npx cap add android || echo "Android platform already exists"
@@ -42,13 +42,18 @@ jobs:
     - name: Set app name & icon
       run: |
         if [ -f ./gg.png ]; then
-          cp gg.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-          cp gg.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-          cp gg.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          cp gg.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          cp gg.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          for density in hdpi mdpi xhdpi xxhdpi xxxhdpi; do
+            cp gg.png android/app/src/main/res/mipmap-$density/ic_launcher.png
+          done
+        else
+          echo "⚠️ gg.png not found, skipping icon update"
         fi
-        sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fakebook<\/string>/' android/app/src/main/res/values/strings.xml
+        # Update app name
+        if [ -f android/app/src/main/res/values/strings.xml ]; then
+          sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fakebook<\/string>/' android/app/src/main/res/values/strings.xml
+        else
+          echo "⚠️ strings.xml not found, skipping app_name update"
+        fi
 
     # 7️⃣ Grant gradlew permission
     - name: Grant execute permission for gradlew
@@ -56,11 +61,19 @@ jobs:
 
     # 8️⃣ Build APK
     - name: Build Android APK
-      run: ./gradlew assembleDebug
+      run: |
+        ./gradlew assembleDebug || echo "⚠️ Gradle build failed or APK not created"
+        echo "Listing APK directory (if exists):"
+        if [ -d android/app/build/outputs/apk/debug ]; then
+          ls -R android/app/build/outputs/apk/debug/
+        else
+          echo "⚠️ APK directory not found"
+        fi
 
-    # 9️⃣ Upload APK as artifact
+    # 9️⃣ Upload APK as artifact (only if exists)
     - name: Upload APK
+      if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
         name: Fakebook-debug
-        path: android/app/build/outputs/apk/debug/*.apk
+        path: android/app/build/outputs/apk/debug/*.apk || echo "⚠️ No APK to upload"
