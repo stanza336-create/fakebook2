@@ -54,7 +54,6 @@ jobs:
           echo "⚠️ gg.png not found, skipping icon update"
         fi
 
-        # Update app name
         strings_xml="android/app/src/main/res/values/strings.xml"
         if [ -f "$strings_xml" ]; then
           sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Fakebook<\/string>/' "$strings_xml"
@@ -77,14 +76,10 @@ jobs:
           echo "⚠️ APK directory not found"
         fi
 
-    # 9️⃣ Upload APK as artifact (only if exists)
+    # 9️⃣ Upload APK as artifact
     - name: Upload APK
       if: ${{ always() }}
-      run: |
-        APK_PATH="android/app/build/outputs/apk/debug/*.apk"
-        if compgen -G "$APK_PATH" > /dev/null; then
-          echo "Uploading APK..."
-          gh-actions-upload-artifact Fakebook-debug "$APK_PATH"
-        else
-          echo "⚠️ No APK to upload"
-        fi
+      uses: actions/upload-artifact@v4
+      with:
+        name: Fakebook-debug
+        path: android/app/build/outputs/apk/debug/*.apk
